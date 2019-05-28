@@ -10,7 +10,7 @@ public class MonsterController : MonoBehaviour
     [SerializeField] float maxDist = 1;
 
     [Header("Parameters")]
-    [SerializeField] public int id;
+    [SerializeField] public int idM;
     [SerializeField] float posX;
     [SerializeField] float posY;
     [SerializeField] float posZ;
@@ -39,7 +39,7 @@ public class MonsterController : MonoBehaviour
 
         gameData = FindObjectOfType<GameController>();
 
-        SetupMonster();
+        SetupMonster(idM);
     }
 
     // Update is called once per frame
@@ -50,7 +50,7 @@ public class MonsterController : MonoBehaviour
 
     }
     
-    private void SetupMonster()
+    private void SetupMonster(int id)
     {
         damage = gameData.GetMonsterParameters(id)["damage"];
         move_speed = gameData.GetMonsterParameters(id)["move_speed"];

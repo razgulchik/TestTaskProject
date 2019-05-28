@@ -25,6 +25,7 @@ public class EnemySpawner : MonoBehaviour
                 gameData.GetMonsterPos(monsterId)["posY"],
                 gameData.GetMonsterPos(monsterId)["posZ"]);
             Debug.Log(enemyPosition);
+            enemy = Resources.Load(gameData.GetMonsterResPath(monsterId), typeof (GameObject)) as GameObject;
             Instantiate(enemy, enemyPosition, transform.rotation);
             yield return new WaitForSeconds(gameData.GetMonsterPeriod(monsterId));
             monsterId += 1;
