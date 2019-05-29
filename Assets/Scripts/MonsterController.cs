@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using BayatGames.Serialization.Formatters.Json;
 
 public class MonsterController : MonoBehaviour
 {
@@ -22,11 +21,8 @@ public class MonsterController : MonoBehaviour
     [SerializeField] int period;
     [SerializeField] string resPath;
 
-    [Header("DebugMenu")]
-    [SerializeField] int idDbg = 1;
-
     GameController gameData;
-    GameObject player;
+    PlayerController player;
     Animator animator;
 
     bool death = false;
@@ -34,11 +30,11 @@ public class MonsterController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        player = FindObjectOfType<PlayerController>().gameObject;
+        player = FindObjectOfType<PlayerController>();
         animator = GetComponent<Animator>();
 
         gameData = FindObjectOfType<GameController>();
-
+        Debug.Log(gameObject.name);
         SetupMonster(idM);
     }
 
@@ -46,8 +42,15 @@ public class MonsterController : MonoBehaviour
     void Update()
     {
         ChasePlayer();
-        Attack();
+        //Attack();
 
+    }
+
+    private int CheckTypeOfMonster(string prefName)
+    {
+        var monsterId = 1;
+
+        return monsterId;
     }
     
     private void SetupMonster(int id)
@@ -62,21 +65,28 @@ public class MonsterController : MonoBehaviour
 
     private void ChasePlayer()
     {
-        transform.LookAt(player.transform);
-
-        if (Vector3.Distance(transform.position, player.transform.position) >= minDist)
+        if (player)
         {
-            if (!animator.GetCurrentAnimatorStateInfo(0).IsTag("EnemyAttack"))
+            if (!death)
             {
-                transform.position += transform.forward * move_speed * Time.deltaTime;
+                transform.LookAt(player.transform);
 
-                animator.SetFloat("speedh", 1);
+                if (Vector3.Distance(transform.position, player.transform.position) >= minDist)
+                {
+                    if (!animator.GetCurrentAnimatorStateInfo(0).IsTag("EnemyAttack"))
+                    {
+                        transform.position += transform.forward * move_speed * Time.deltaTime;
+
+                        animator.SetFloat("speedh", 1);
+
+                    }
+                }
+                else
+                {
+                    animator.SetFloat("speedh", 0);
+                    Attack();
+                }
             }
-
-        }
-        else
-        {
-            animator.SetFloat("speedh", 0);
         }
     }
     private void Attack()
@@ -85,27 +95,63 @@ public class MonsterController : MonoBehaviour
         {
             if (Vector3.Distance(transform.position, player.transform.position) <= maxDist)
             {
-                Hit();
+                StartCoroutine( Hit());
+            }
+            else
+            {
+                StopCoroutine(Hit());
             }
         }
 
     }
-    void Hit()
+    IEnumerator Hit()
     {
-        if (!animator.GetCurrentAnimatorStateInfo(0).IsTag("EnemyAttack"))
+        
+        if (!death)
         {
-            animator.SetTrigger("Attack1h1");
-            
+            if (!animator.GetCurrentAnimatorStateInfo(0).IsTag("EnemyAttack"))
+            {
+                animator.SetTrigger("Attack1h1");
+                SndDmgToPlayer();
+            }
+        }
+        yield return new WaitForSeconds(1);
+    }
+
+    private void SndDmgToPlayer()
+    {
+        if (player)
+        {
+            RaycastHit hit;
+
+            if (Physics.Raycast(transform.position, transform.TransformDirection(
+                Vector3.forward), out hit, 2))
+            {
+                Debug.DrawRay(transform.position, transform.TransformDirection(
+                    Vector3.forward) * hit.distance, Color.yellow);
+                Debug.Log("Hit");
+                player.PlayerReceiveDamage(gameObject);
+            }
+            else
+            {
+                Debug.DrawRay(transform.position, transform.TransformDirection(
+                    Vector3.forward) * 5, Color.red);
+                Debug.Log("NOT Hit");
+            }
         }
     }
-    
-    public void ReceiveDamage()
+
+    public void MonsterReceiveDamage()
     {
         animator.SetTrigger("Hit1");
-        hp -= player.GetComponent<PlayerController>().PlayerDamage();
+        hp -= player.PlayerDamage();
         if(hp <= 0)
         {
             StartCoroutine(Die());
+        }
+        else
+        {
+            animator.SetTrigger("Hit1");
         }
     }
 
@@ -113,8 +159,13 @@ public class MonsterController : MonoBehaviour
     {
         death = true;
         animator.SetTrigger("Fall1");
-        player.GetComponent<PlayerController>().AddToExp(exp);
-        yield return new WaitForSeconds(1);
+        player.AddToExp(exp);
+        yield return new WaitForSeconds(2);
         Destroy(gameObject);
+    }
+
+    public int MonsterDamage()
+    {
+        return damage;
     }
 }

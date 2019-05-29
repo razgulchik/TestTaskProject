@@ -6,39 +6,39 @@ public class EnemySpawner : MonoBehaviour
 {
     [SerializeField] int monsterId = 0;
     [SerializeField] GameObject enemy;
-    int period = 5;
     GameController gameData;
+    PlayerController player;
 
     // Start is called before the first frame update
     void Start()
     {
+        player = FindObjectOfType<PlayerController>();
         gameData = gameData = FindObjectOfType<GameController>();
         StartCoroutine(SpawnEnemy());
     }
 
     IEnumerator SpawnEnemy()
     {
-        while (true)
+        if (player)
         {
-            Vector3 enemyPosition = new Vector3(
-                gameData.GetMonsterPos(monsterId)["posX"],
-                gameData.GetMonsterPos(monsterId)["posY"],
-                gameData.GetMonsterPos(monsterId)["posZ"]);
-            Debug.Log(enemyPosition);
-            enemy = Resources.Load(gameData.GetMonsterResPath(monsterId), typeof (GameObject)) as GameObject;
-            Instantiate(enemy, enemyPosition, transform.rotation);
-            yield return new WaitForSeconds(gameData.GetMonsterPeriod(monsterId));
-            monsterId += 1;
-            if (monsterId > 2)
+            while (true)
             {
-                monsterId = 0;
+                Vector3 enemyPosition = new Vector3(
+                    gameData.GetMonsterPos(monsterId)["posX"],
+                    gameData.GetMonsterPos(monsterId)["posY"],
+                    gameData.GetMonsterPos(monsterId)["posZ"]);
+                Debug.Log(enemyPosition);
+                enemy = Resources.Load(gameData.GetMonsterResPath(monsterId), typeof(GameObject)) as GameObject;
+                Instantiate(enemy, enemyPosition,
+                    Quaternion.Euler(0, gameData.GetMonsterPos(monsterId)["rotY"], 0));
+                monsterId += 1;
+                if (monsterId > 2)
+                {
+                    monsterId = 0;
+                }
+                yield return new WaitForSeconds(gameData.GetMonsterPeriod(monsterId));
+
             }
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

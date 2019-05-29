@@ -11,17 +11,21 @@ public class CameraController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        player = FindObjectOfType<PlayerController>().gameObject;
         offset = transform.position - player.transform.position;
     }
 
     // Update is called once per frame
     void LateUpdate()
     {
-        Vector3 newPosition = player.transform.position + offset;
-        Vector3 position = Vector3.Lerp
-            (transform.position, newPosition, damping * Time.deltaTime);
-        transform.position = position;
+        if (player)
+        {
+            Vector3 newPosition = player.transform.position + offset;
+            Vector3 position = Vector3.Lerp
+                (transform.position, newPosition, damping * Time.deltaTime);
+            transform.position = position;
 
-        //transform.LookAt(player.transform.position);
+            //transform.LookAt(player.transform.position);
+        }
     }
 }
