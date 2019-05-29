@@ -9,6 +9,7 @@ public class EnemySpawner : MonoBehaviour
     GameController gameData;
     PlayerController player;
 
+    int i;
     // Start is called before the first frame update
     void Start()
     {
@@ -29,9 +30,11 @@ public class EnemySpawner : MonoBehaviour
                     gameData.GetMonsterPos(monsterId)["posZ"]);
                 Debug.Log(enemyPosition);
                 enemy = Resources.Load(gameData.GetMonsterResPath(monsterId), typeof(GameObject)) as GameObject;
-                Instantiate(enemy, enemyPosition,
-                    Quaternion.Euler(0, gameData.GetMonsterPos(monsterId)["rotY"], 0));
-                monsterId += 1;
+                var newEnemy = Instantiate(enemy, enemyPosition,
+                    Quaternion.Euler(0, gameData.GetMonsterPos(monsterId)["rotY"], 0)) 
+                    as GameObject;
+                i = monsterId;
+                monsterId++;
                 if (monsterId > 2)
                 {
                     monsterId = 0;
@@ -40,5 +43,10 @@ public class EnemySpawner : MonoBehaviour
 
             }
         }
+    }
+
+    public int GetMonsterType()
+    {
+        return i;
     }
 }

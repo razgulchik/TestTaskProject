@@ -107,7 +107,10 @@ public class PlayerController : MonoBehaviour
             Debug.DrawRay(transform.position, transform.TransformDirection(
                 Vector3.forward) * hit.distance, Color.yellow);
             Debug.Log("Hit");
-            hit.collider.gameObject.GetComponent<MonsterController>().MonsterReceiveDamage();
+            if (hit.collider)
+            {
+                hit.collider.gameObject.GetComponent<MonsterController>().MonsterReceiveDamage();
+            }
         }
         else
         {
@@ -141,14 +144,13 @@ public class PlayerController : MonoBehaviour
         livesUpdater.UpdateLivesAmount(health);
         if (health <= 0)
         {
-            StartCoroutine(Die());
+            Die();
         }
     }
 
-    IEnumerator Die()
+    void Die()
     {
+        FindObjectOfType<SceneLoader>().LoadGameOver(); 
         Destroy(gameObject);
-        yield return new WaitForSeconds(2);
-        FindObjectOfType<SceneLoader>().LoadSceneByIndex(0);
     }
 }

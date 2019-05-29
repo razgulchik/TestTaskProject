@@ -21,4 +21,15 @@ public class SceneLoader : MonoBehaviour
     {
         SceneManager.LoadScene(currentSceneIndex + 1);
     }
+
+    public void LoadGameOver()
+    {
+        StartCoroutine(DelayAfterDie());
+    }
+
+    IEnumerator DelayAfterDie()
+    {
+        yield return new WaitForSeconds(2);
+        SceneManager.LoadScene(0);
+    }
 }

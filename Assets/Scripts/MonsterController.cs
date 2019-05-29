@@ -25,8 +25,13 @@ public class MonsterController : MonoBehaviour
     PlayerController player;
     Animator animator;
 
-    bool death = false;
+    bool dead = false;
+    bool hitPlayer = false;
 
+    private void Awake()
+    {
+        
+    }
     // Start is called before the first frame update
     void Start()
     {
@@ -35,31 +40,23 @@ public class MonsterController : MonoBehaviour
 
         gameData = FindObjectOfType<GameController>();
         Debug.Log(gameObject.name);
-        SetupMonster(idM);
+        SetupMonster(FindObjectOfType<EnemySpawner>().GetMonsterType());
     }
 
     // Update is called once per frame
     void Update()
     {
         ChasePlayer();
-        //Attack();
 
     }
 
-    private int CheckTypeOfMonster(string prefName)
-    {
-        var monsterId = 1;
-
-        return monsterId;
-    }
-    
+   
     private void SetupMonster(int id)
     {
         damage = gameData.GetMonsterParameters(id)["damage"];
         move_speed = gameData.GetMonsterParameters(id)["move_speed"];
         hp = gameData.GetMonsterParameters(id)["hp"];
         exp = gameData.GetMonsterParameters(id)["exp"];
-        period = gameData.GetMonsterPeriod(id);
         resPath = gameData.GetMonsterResPath(id);
     }
 
@@ -67,18 +64,15 @@ public class MonsterController : MonoBehaviour
     {
         if (player)
         {
-            if (!death)
+            if (!dead)
             {
                 transform.LookAt(player.transform);
-
                 if (Vector3.Distance(transform.position, player.transform.position) >= minDist)
                 {
                     if (!animator.GetCurrentAnimatorStateInfo(0).IsTag("EnemyAttack"))
                     {
                         transform.position += transform.forward * move_speed * Time.deltaTime;
-
                         animator.SetFloat("speedh", 1);
-
                     }
                 }
                 else
@@ -91,11 +85,16 @@ public class MonsterController : MonoBehaviour
     }
     private void Attack()
     {
-        if (!death)
+        if (!dead)
         {
             if (Vector3.Distance(transform.position, player.transform.position) <= maxDist)
             {
-                StartCoroutine( Hit());
+                if (!animator.GetCurrentAnimatorStateInfo(0).IsTag("EnemyAttack"))
+                {
+                    animator.SetTrigger("Attack1h1");
+                    StartCoroutine(Hit());
+                    SndDmgToPlayer();
+                }
             }
             else
             {
@@ -106,31 +105,14 @@ public class MonsterController : MonoBehaviour
     }
     IEnumerator Hit()
     {
-        
-        if (!death)
-        {
-            if (!animator.GetCurrentAnimatorStateInfo(0).IsTag("EnemyAttack"))
-            {
-                animator.SetTrigger("Attack1h1");
-                SndDmgToPlayer();
-            }
-        }
-        yield return new WaitForSeconds(1);
-    }
-
-    private void SndDmgToPlayer()
-    {
         if (player)
         {
             RaycastHit hit;
-
-            if (Physics.Raycast(transform.position, transform.TransformDirection(
-                Vector3.forward), out hit, 2))
+            if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, 2))
             {
-                Debug.DrawRay(transform.position, transform.TransformDirection(
-                    Vector3.forward) * hit.distance, Color.yellow);
+                Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * hit.distance, Color.yellow);
                 Debug.Log("Hit");
-                player.PlayerReceiveDamage(gameObject);
+                if (hit.collider.gameObject.Equals(player)) { hitPlayer = true; }
             }
             else
             {
@@ -138,6 +120,16 @@ public class MonsterController : MonoBehaviour
                     Vector3.forward) * 5, Color.red);
                 Debug.Log("NOT Hit");
             }
+            yield return new WaitForSeconds(1);
+        }
+    }
+
+    private void SndDmgToPlayer()
+    {
+        if (hitPlayer)
+        {
+            player.PlayerReceiveDamage(gameObject);
+            hitPlayer = false;
         }
     }
 
@@ -157,7 +149,7 @@ public class MonsterController : MonoBehaviour
 
     IEnumerator Die()
     {
-        death = true;
+        dead = true;
         animator.SetTrigger("Fall1");
         player.AddToExp(exp);
         yield return new WaitForSeconds(2);
